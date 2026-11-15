@@ -1,188 +1,22 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-neutral-950">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TAT-POS Enterprise Pro v33 | Sistema Integral de Preventa & Facturación</title>
-    
-    <meta name="theme-color" content="#030712">
-    <link rel="apple-touch-icon" href="./icons/icon-192.png">
-    <link rel="icon" type="image/png" href="./icons/icon-192.png">
-    <link rel="manifest" href="./manifest.json">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAT-POS Enterprise | Ventas TAT, Rutas y Administración</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.png">
+    <meta name="theme-color" content="#0f172a">
 </head>
-<body class="h-[100dvh] w-full text-gray-100 bg-neutral-950 flex flex-col justify-between selection:bg-cyan-500 selection:text-black overflow-hidden font-sans overscroll-none">
-
-    <!-- TOP HEADER -->
-    <header class="bg-neutral-900/95 border-b border-neutral-800 px-4 pt-[max(0.6rem,env(safe-area-inset-top))] pb-3 flex items-center justify-between sticky top-0 z-40 shadow-xl shrink-0">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-neutral-950 font-black flex items-center justify-center text-sm shadow-md border border-cyan-400/30">POS</div>
-            <div>
-                <h1 class="font-extrabold text-sm text-white tracking-wide">TAT-POS Enterprise Pro</h1>
-                <div class="flex items-center gap-2 mt-0.5">
-                    <span id="network-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                        <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> <span id="network-text">Online</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Fusagasugá</span>
-                </div>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="openScannerModal()" class="p-2.5 bg-neutral-800 hover:bg-neutral-700 text-cyan-400 rounded-2xl text-xs flex items-center border border-neutral-700 transition" title="Escanear Código de Barras">
-                <i data-lucide="scan" class="w-4 h-4"></i>
-            </button>
-            <button onclick="exportarManifiestoRutaJSON()" class="p-2.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 rounded-2xl text-xs flex items-center border border-neutral-700 transition" title="Exportar Manifiesto para Conductor">
-                <i data-lucide="share-2" class="w-4 h-4"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- MAIN VIEWCONTAINER (ADAPTABLE PC, TABLET, MOVIL) -->
-    <main class="flex-1 overflow-y-auto w-full max-w-5xl mx-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] p-3 md:p-6 relative flex flex-col md:flex-row gap-4">
-
-        <!-- COLUMNA IZQUIERDA / PRINCIPAL: CATÁLOGO Y BÚSQUEDA -->
-        <div class="flex-1 flex flex-col space-y-4 min-w-0">
-            <!-- Barra de Búsqueda Rápida & Selector de Precios -->
-            <div class="flex gap-2">
-                <div class="flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center px-3 py-2.5 shadow-lg">
-                    <i data-lucide="search" class="w-4 h-4 text-cyan-400 mr-2 shrink-0"></i>
-                    <input type="text" id="pos-search-input" placeholder="Buscar producto o escanear código..." oninput="filtrarCatalogoPOS(this.value)" class="w-full bg-transparent text-xs text-white focus:outline-none placeholder-neutral-500 font-medium">
-                </div>
-                <select id="pos-price-list-selector" onchange="cambiarListaPrecios(this.value)" class="bg-neutral-900 border border-neutral-800 rounded-2xl px-3 text-xs text-cyan-400 font-bold focus:outline-none shadow-lg">
-                    <option value="tienda">Precio Tienda</option>
-                    <option value="mayorista">Mayorista</option>
-                    <option value="distribuidor">Distribuidor</option>
-                </select>
-            </div>
-
-            <!-- Catálogo de Productos & Alertas de Stock Crítico -->
-            <div class="flex justify-between items-center">
-                <h3 class="text-xs font-black text-white uppercase tracking-widest">Catálogo de Productos & Stock</h3>
-                <button onclick="openProductModal()" class="text-xs text-cyan-400 font-bold hover:underline">+ Nuevo Producto</button>
-            </div>
-            <div id="pos-catalog-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 pb-2"></div>
-        </div>
-
-        <!-- COLUMNA DERECHA / PANEL FIJO: FACTURA & CARRITO -->
-        <div class="w-full md:w-96 flex flex-col space-y-4 shrink-0">
-            <div id="view-pos" class="bg-neutral-900 border border-cyan-500/30 rounded-3xl p-4 shadow-2xl space-y-3.5 flex flex-col">
-                <div class="flex justify-between items-center border-b border-neutral-800 pb-2.5">
-                    <h3 class="font-black text-xs text-cyan-400 uppercase tracking-wider">🛒 Factura / Venta Actual</h3>
-                    <span id="pos-cart-count" class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold">0 ítems</span>
-                </div>
-                
-                <div id="pos-cart-items" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-                    <div class="text-center text-neutral-500 text-xs py-6">Carrito vacío. Seleccione productos del catálogo.</div>
-                </div>
-
-                <div class="pt-2 border-t border-neutral-800 space-y-1.5">
-                    <div class="flex justify-between text-xs font-bold">
-                        <span class="text-neutral-400">Subtotal:</span>
-                        <strong id="pos-subtotal">$0</strong>
-                    </div>
-                    <div class="flex justify-between text-sm font-black text-emerald-400">
-                        <span>TOTAL A PAGAR:</span>
-                        <strong id="pos-total">$0</strong>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button onclick="abrirModalPagoPOS('cash')" class="bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-black py-3 rounded-xl text-xs transition shadow-lg">💵 Cobrar Efectivo</button>
-                    <button onclick="abrirModalPagoPOS('transfer')" class="bg-teal-600 hover:bg-teal-500 text-white font-black py-3 rounded-xl text-xs transition shadow-lg">📱 QR / Nequi</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- INVENTORY VIEW TAB CONTAINER -->
-        <section id="view-inventory" class="p-3.5 space-y-3.5 hidden flex-1 bg-neutral-950 w-full">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xs font-black text-emerald-400 uppercase tracking-widest">Gestión de Stock & Devoluciones</h2>
-                <button onclick="openReturnModal()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition">↩️ Nota Crédito / Devolución</button>
-            </div>
-            <div id="lista-inventario-pos" class="space-y-2.5"></div>
-        </section>
-
-        <!-- CLIENTS VIEW TAB CONTAINER -->
-        <section id="view-clients" class="p-3.5 space-y-3.5 hidden flex-1 bg-neutral-950 w-full">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xs font-black text-cyan-400 uppercase tracking-widest">Agenda de Clientes TAT</h2>
-                <button onclick="openClientModal()" class="bg-cyan-500 text-neutral-950 text-xs font-black px-3 py-2 rounded-xl">+ Cliente</button>
-            </div>
-            <div id="lista-agenda" class="space-y-2.5"></div>
-        </section>
-
-        <!-- FINANCES VIEW TAB CONTAINER -->
-        <section id="view-finances" class="p-3.5 space-y-3.5 hidden flex-1 bg-neutral-950 w-full">
-            <div class="bg-neutral-900 border border-cyan-500/30 rounded-3xl p-4 shadow-xl space-y-3.5">
-                <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
-                    <div>
-                        <span class="text-[11px] text-neutral-400 uppercase font-black tracking-wider">Arqueo Físico de Caja POS</span>
-                        <div id="counter-total-display" class="text-xl font-black text-cyan-400 mt-0.5">$0</div>
-                    </div>
-                    <button onclick="resetCashCounter()" class="bg-neutral-800 text-neutral-300 text-xs px-3 py-2 rounded-xl font-bold">Limpiar</button>
-                </div>
-                <div id="denominations-container" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- BOTTOM NAVBAR (MÓVIL / TABLET) -->
-    <nav class="bg-neutral-900/95 border-t border-neutral-800 fixed bottom-0 left-0 right-0 z-40 max-w-lg mx-auto shadow-2xl pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div class="grid grid-cols-4 py-1.5 px-1 text-center text-xs">
-            <button onclick="switchTab('pos')" id="nav-btn-pos" class="flex flex-col items-center justify-center text-cyan-400 py-1.5 font-bold">
-                <i data-lucide="store" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-1">POS</span>
-            </button>
-            <button onclick="switchTab('inventory')" id="nav-btn-inventory" class="flex flex-col items-center justify-center text-neutral-400 py-1.5 font-bold">
-                <i data-lucide="package" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-1">Stock</span>
-            </button>
-            <button onclick="switchTab('clients')" id="nav-btn-clients" class="flex flex-col items-center justify-center text-neutral-400 py-1.5 font-bold">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-1">Clientes</span>
-            </button>
-            <button onclick="switchTab('finances')" id="nav-btn-finances" class="flex flex-col items-center justify-center text-neutral-400 py-1.5 font-bold">
-                <i data-lucide="wallet" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-1">Caja</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- MODAL PAGO Y COMPROBANTE Nequi / DaviPlata -->
-    <div id="modal-pago" class="fixed inset-0 bg-neutral-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-neutral-900 border border-cyan-500/40 w-full max-w-sm rounded-3xl p-5 space-y-3.5 shadow-2xl text-xs">
-            <h3 id="modal-pago-title" class="font-black text-sm text-cyan-400">Confirmar Pago</h3>
-            <div id="transfer-ref-box" class="hidden space-y-1.5">
-                <label class="text-neutral-400 font-bold block">Número de Comprobante / Referencia Nequi / DaviPlata</label>
-                <input type="text" id="pago-comprobante" placeholder="Ej. NEQ-8937210" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-white font-mono">
-            </div>
-            <div class="flex justify-between items-center text-sm font-black pt-2 border-t border-neutral-800">
-                <span>Total a Cobrar:</span>
-                <span id="modal-pago-total" class="text-emerald-400">$0</span>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="procesarVentaPOS()" class="flex-1 bg-emerald-500 text-neutral-950 font-black py-3 rounded-xl">Finalizar & Imprimir Ticket</button>
-                <button onclick="document.getElementById('modal-pago').classList.add('hidden')" class="bg-neutral-800 text-neutral-300 px-4 py-3 rounded-xl font-bold">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL ESCÁNER DE CÓDIGOS -->
-    <div id="modal-scanner" class="fixed inset-0 bg-neutral-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-neutral-900 border border-cyan-500/40 w-full max-w-sm rounded-3xl p-5 space-y-3.5 text-center text-xs">
-            <h3 class="font-black text-sm text-cyan-400">📷 Escanear Código de Barras</h3>
-            <div class="bg-neutral-950 p-6 rounded-2xl border border-dashed border-cyan-500/40 text-neutral-400 space-y-2">
-                <i data-lucide="camera" class="w-10 h-10 mx-auto text-cyan-400 animate-pulse"></i>
-                <p>Simulador de Lector / Cámara Activa</p>
-            </div>
-            <input type="text" id="simulated-barcode" placeholder="Escribir o simular código (ej. 7701001)" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-white text-center">
-            <button onclick="simularEscaneoCodigo()" class="w-full bg-cyan-500 text-neutral-950 font-black py-3 rounded-xl">Buscar Producto</button>
-            <button onclick="document.getElementById('modal-scanner').classList.add('hidden')" class="w-full text-neutral-400 font-bold">Cerrar</button>
-        </div>
-    </div>
-
-    <script src="./app.js"></script>
+<body>
+    <div id="pos-app"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.error);
+    </script>
 </body>
 </html>
