@@ -2,21 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAT-POS Enterprise | Ventas TAT, Rutas y Administración</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAT-POS Enterprise | Autoventa & Facturación 100% Offline</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icons/icon-192.png">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1e3a8a">
 </head>
 <body>
-    <div id="pos-app"></div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- LOGIN / PIN POS CON SALUDO AMIGABLE -->
+    <div id="auth-screen" class="auth-overlay">
+        <div class="auth-card">
+            <div class="brand-logo" style="background:#2563eb;">POS</div>
+            <h2 id="greeting-title">¡Hola! Qué gusto tenerte de nuevo</h2>
+            <p id="greeting-subtitle" class="quote-text">"La gestión comercial eficiente impulsa cada gran negocio. ¡A vender!"</p>
+            
+            <div class="auth-form-group" style="margin-top:16px;">
+                <label><i class="fas fa-user-shield"></i> Seleccionar Rol POS:</label>
+                <select id="pos-role-sel">
+                    <option value="pos">🏪 Cajero / Autovendedor</option>
+                    <option value="admin">👑 Administrador General</option>
+                </select>
+
+                <label><i class="fas fa-user"></i> Nombre del Operador:</label>
+                <input type="text" id="pos-name" value="Cajero Principal">
+
+                <label><i class="fas fa-building"></i> Nombre de la Empresa (Facturas / Logo):</label>
+                <input type="text" id="pos-biz" value="Distribuciones Fusa S.A.S.">
+
+                <label><i class="fas fa-lock"></i> PIN de Seguridad (4 dígitos):</label>
+                <input type="password" id="pos-pin" value="1234" placeholder="PIN de 4 dígitos">
+
+                <button class="btn btn-primary btn-lg" onclick="loginPos()">
+                    <i class="fas fa-cash-register"></i> INGRESAR AL POS (100% OFFLINE)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL POS -->
+    <div id="app-container" style="display:none;"></div>
+
     <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.error);
-    </script>
 </body>
 </html>
