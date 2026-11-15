@@ -1,4 +1,4 @@
-// TAT-POS Enterprise Pro v3.2 - Sistema de Preventa & Facturación en Ruta
+// TAT-POS Enterprise Pro v3.3 - Sistema Integral de Preventa & Facturación
 let posState = {
     activeTab: 'pos',
     priceList: 'tienda', // tienda, mayorista, distribuidor
@@ -19,7 +19,9 @@ let posState = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) {}
+    }
     renderPosCatalog();
     renderInventory();
     renderClients();
@@ -42,7 +44,7 @@ function switchTab(tabId) {
 function cambiarListaPrecios(val) {
     posState.priceList = val;
     renderPosCatalog();
-    updateCartTotals();
+    renderCart();
 }
 
 function renderPosCatalog(filter = '') {
@@ -98,7 +100,7 @@ function renderCart() {
     if (!container) return;
 
     if (posState.cart.length === 0) {
-        container.innerHTML = `<div class="text-center text-neutral-500 text-xs py-4">Carrito vacío. Seleccione productos abajo.</div>`;
+        container.innerHTML = `<div class="text-center text-neutral-500 text-xs py-6">Carrito vacío. Seleccione productos del catálogo.</div>`;
         countEl.innerText = `0 ítems`;
         document.getElementById('pos-subtotal').innerText = `$0`;
         document.getElementById('pos-total').innerText = `$0`;
@@ -113,14 +115,14 @@ function renderCart() {
         const itemTotal = item.price * item.qty;
         subtotal += itemTotal;
         return `
-            <div class="flex justify-between items-center bg-neutral-950 p-2 rounded-xl border border-neutral-800 text-xs">
+            <div class="flex justify-between items-center bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs">
                 <div class="min-w-0 flex-1 pr-2">
                     <div class="font-bold text-white truncate">${item.name}</div>
                     <div class="text-[10px] text-neutral-400">$${item.price.toLocaleString()} x ${item.qty}</div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <strong class="text-emerald-400">$${itemTotal.toLocaleString()}</strong>
-                    <button onclick="posState.cart.splice(${idx},1);renderCart()" class="text-neutral-500 hover:text-rose-400 font-bold px-1">×</button>
+                    <button onclick="posState.cart.splice(${idx},1);renderCart()" class="text-neutral-500 hover:text-rose-400 font-bold px-1.5 text-sm">×</button>
                 </div>
             </div>
         `;
@@ -136,7 +138,7 @@ function abrirModalPagoPOS(method) {
     currentPaymentMethod = method;
     const total = posState.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     
-    document.getElementById('modal-pago-title.innerText', `Cobrar por ${method === 'cash' ? 'Efectivo' : 'Nequi / DaviPlata'}`);
+    document.getElementById('modal-pago-title').innerText = `Cobrar por ${method === 'cash' ? 'Efectivo' : 'Nequi / DaviPlata'}`;
     document.getElementById('modal-pago-total').innerText = `$${total.toLocaleString()}`;
     document.getElementById('transfer-ref-box').classList.toggle('hidden', method === 'cash');
     document.getElementById('modal-pago').classList.remove('hidden');
@@ -145,7 +147,6 @@ function abrirModalPagoPOS(method) {
 function procesarVentaPOS() {
     const total = posState.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     
-    // Descontar stock local
     posState.cart.forEach(item => {
         const p = posState.products.find(x => x.id === item.id);
         if (p) p.stock = Math.max(0, p.stock - item.qty);
@@ -202,7 +203,7 @@ function renderInventory() {
     const container = document.getElementById('lista-inventario-pos');
     if (!container) return;
     container.innerHTML = posState.products.map(p => `
-        <div class="bg-neutral-900 border ${p.stock<=5?'border-amber-500/40':'border-neutral-800'} rounded-2xl p-3 flex justify-between items-center text-xs">
+        <div class="bg-neutral-900 border ${p.stock<=5?'border-amber-500/40':'border-neutral-800'} rounded-2xl p-3.5 flex justify-between items-center text-xs">
             <div>
                 <h4 class="font-bold text-white">${p.name}</h4>
                 <p class="text-[11px] text-neutral-400">Código: ${p.code} • Costo: $${p.cost.toLocaleString()}</p>
@@ -219,7 +220,7 @@ function renderClients() {
     const container = document.getElementById('lista-agenda');
     if (!container) return;
     container.innerHTML = posState.clients.map(c => `
-        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-3 text-xs">
+        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-3.5 text-xs">
             <h4 class="font-bold text-white">${c.client}</h4>
             <p class="text-[11px] text-neutral-400">${c.address} • Tel: ${c.phone}</p>
         </div>
@@ -234,7 +235,7 @@ function renderDenominations() {
         <div class="flex items-center justify-between bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs">
             <span class="font-bold text-white">$${d.toLocaleString()}</span>
             <div class="flex items-center gap-2">
-                <input type="number" min="0" value="${posState.denominations[d] || 0}" onchange="posState.denominations[${d}]=Math.max(0,parseInt(this.value)||0);updatePosCash()" class="w-12 bg-neutral-900 border border-neutral-700 rounded-lg text-center text-white font-bold p-1">
+                <input type="number" min="0" value="${posState.denominations[d] || 0}" onchange="posState.denominations[${d}]=Math.max(0,parseInt(this.value)||0);updatePosCash()" class="w-16 bg-neutral-900 border border-neutral-700 rounded-lg text-center text-white font-bold p-1.5">
             </div>
         </div>
     `).join('');
