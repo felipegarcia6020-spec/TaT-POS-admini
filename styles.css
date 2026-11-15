@@ -1,0 +1,14 @@
+/* TAT-POS Admin Standalone Styles */
+:root { --primary: #1e40af; --success: #15803d; --bg: #f8fafc; --border: #cbd5e1; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background: var(--bg); color: #0f172a; }
+header { background: #0f172a; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+.layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; max-width: 1300px; margin: 18px auto; padding: 0 16px; }
+.panel { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 12px; }
+.prod-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.15s; }
+.prod-item:hover { border-color: var(--primary); background: #eff6ff; }
+.btn { background: var(--primary); color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-green { background: var(--success); }
+input, select { width: 100%; padding: 9px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; font-size: 14px; }
+@media (max-width: 850px) { .layout { grid-template-columns: 1fr; } }
